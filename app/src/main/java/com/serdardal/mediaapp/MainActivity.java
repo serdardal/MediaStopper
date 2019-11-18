@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     GestureDetectorCompat gestureDetectorCompat;
     static int time;
     int lastValue;
+    int lastDeltaY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         gestureDetectorCompat = new GestureDetectorCompat(this,this);
         lastValue=0;
+        lastDeltaY=0;
 
     }
 
@@ -93,20 +95,22 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         float deltaY = e1.getY()- e2.getY();
+        int currentDeltaY =(int) deltaY/100;
 
-        if(Math.abs(deltaY)>100){
-            int a =(int) deltaY/100;
+        if (currentDeltaY != lastDeltaY){
+            int newValue = lastValue + currentDeltaY*5;
 
-            if((lastValue + a*5)>=0){
-                editText.setText(""+ (lastValue + a*5));
+            if(newValue >= 0){
+                editText.setText(""+ newValue);
             }
             else{
                 editText.setText("0");
             }
 
-
+            lastDeltaY = currentDeltaY;
 
         }
+
 
         return true;
     }
