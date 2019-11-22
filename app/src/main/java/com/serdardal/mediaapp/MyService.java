@@ -1,9 +1,12 @@
 package com.serdardal.mediaapp;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Build;
@@ -32,12 +35,25 @@ public class MyService extends Service {
     @Override
     public void onCreate() {
         minutes = MainActivity.time;
+        String NOTIFICATION_CHANNEL_ID = "com.example.mediaapp";
 
-        Notification notification = new NotificationCompat.Builder(this,"Hikmet").setSmallIcon(R.drawable.ic_launcher_background)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            String channelName = "My Background Service";
+            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+            chan.setLightColor(Color.BLUE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            assert manager != null;
+            manager.createNotificationChannel(chan);
+        }
+
+        Notification notification = new NotificationCompat.Builder(this,NOTIFICATION_CHANNEL_ID).setSmallIcon(R.drawable.ic_launcher_background)
                 .setContentTitle("Media Stopper")
                 .setContentText("Media stop process has begun!").build();
 
-        startForeground(1337, notification);
+        startForeground(1, notification);
+
+
 
         timer = new CountDownTimer(1000*60*minutes,1000) {
             @Override
