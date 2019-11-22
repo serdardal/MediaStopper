@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -33,8 +34,8 @@ public class MyService extends Service {
         minutes = MainActivity.time;
 
         Notification notification = new NotificationCompat.Builder(this,"Hikmet").setSmallIcon(R.drawable.ic_launcher_background)
-                .setContentTitle("My notification")
-                .setContentText("Much longer text that cannot fit one line...").build();
+                .setContentTitle("Media Stopper")
+                .setContentText("Media stop process has begun!").build();
 
         startForeground(1337, notification);
 
@@ -46,9 +47,21 @@ public class MyService extends Service {
 
             @Override
             public void onFinish() {
-                am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                afr = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).build();
-                am.requestAudioFocus(afr);
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                    am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                    afr = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).build();
+                    am.requestAudioFocus(afr);
+                }
+                else {
+                    AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                    audioManager.requestAudioFocus(new AudioManager.OnAudioFocusChangeListener() {
+                        @Override
+                        public void onAudioFocusChange(int focusChange) {
+
+                        }
+                    }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+                }
+
 
                 stopSelf();
             }
