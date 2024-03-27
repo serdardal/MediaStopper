@@ -1,11 +1,15 @@
 package com.serdardal.mediaapp;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -17,6 +21,7 @@ public class MyService extends Service {
     AudioFocusRequest afr;
     CountDownTimer timer;
     int minutes;
+    String NOTIFICATION_CHANNEL_ID = "com.serdardal.mediaapp";
 
     public MyService() {
 
@@ -30,14 +35,47 @@ public class MyService extends Service {
 
     @Override
     public void onCreate() {
+        super.onCreate();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            createNotificationNewWay();
+        else
+            createNotificationOldWay();
+    }
+
+    private void createNotificationOldWay(){
+        Notification notification = new NotificationCompat.Builder(getApplicationContext(), NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle("App is running in background")
+            .build();
+
+        startForeground(1, notification);
+
+        startTimer();
+    }
+
+    private void createNotificationNewWay(){
+        String channelName = "MediaStopper Background Service";
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
+        startForeground(2, notification);
+
+        startTimer();
+    }
+
+    private void startTimer(){
         minutes = MainActivity.time;
-
-        Notification notification = new NotificationCompat.Builder(this,"Hikmet").setSmallIcon(R.drawable.ic_launcher_background)
-                .setContentTitle("My notification")
-                .setContentText("Much longer text that cannot fit one line...").build();
-
-        startForeground(1337, notification);
-
         timer = new CountDownTimer(1000*60*minutes,1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -53,8 +91,6 @@ public class MyService extends Service {
                 stopSelf();
             }
         };
-
-
     }
 
     @Override
